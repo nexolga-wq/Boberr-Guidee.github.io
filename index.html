@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <base target="_self">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бобруйск: Туристические достопримечательности | Ленинское районное отделение партия "Белая Русь"</title>
+    <meta name="description" content="Официальный сайт о туристических достопримечательностях города Бобруйска. Деревянное зодчество, промышленная архитектура, храмы трёх религий, краеведческий музей.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: "#5c4033",     // Глубокий коричневый (базовый)
+                    secondary: "#ffbb7c",   // Оранжевый цвет буйволовой кожи (акцентный)
+                    accent: "#cf9c63",      // Желто-коричневый (мягкий золото-песочный)
+                    light: "#f5ece1",       // Светло-коричневый (кремовый, для фонов блоков)
+                    dark: "#2b1d16"         // Очень темный коричневый (для читаемого текста)
+                },
+                fontFamily: {
+                    'sans': ['Roboto', 'sans-serif'],
+                    'serif': ['Playfair Display', 'serif']
+                },
+                spacing: {
+                    'section': '3rem',
+                    'card': '1.5rem'
+                }
+            }
+        }
+    }
+</script>
+<style>
+    /* Плавный переход из глубокого коричневого в теплый цвет буйволовой кожи */
+    .hero-gradient {
+        background: linear-gradient(135deg, rgba(92, 64, 51, 0.9) 0%, rgba(255, 187, 124, 0.8) 100%);
+    }
+    .card-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(92, 64, 51, 0.15); /* Мягкая коричневая тень вместо черной */
+    }
+    /* Маркер карты теперь окрашен в фирменный желто-коричневый цвет */
+    .map-marker {
+        width: 24px;
+        height: 24px;
+        background-color: #cf9c63;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        position: relative;
+    }
+    .map-marker::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 12px;
+        height: 12px;
+        background-color: white;
+        border-radius: 50%;
+    }
+</style>
+</head>
+<body class="min-h-screen bg-light font-sans text-dark">
+    <header class="sticky top-0 z-50 bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                        <i class="fas fa-landmark text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-primary">Бобер-путеводитель</h1>
+                        
+                    </div>
+                </div>
+                <nav class="w-full md:w-auto">
+                    <ul id="nav-menu" class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6"></ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-gradient text-white py-12 md:py-16">
+            <div class="container mx-auto px-4">
+                <div class="max-w-3xl">
+                    <h2 class="text-3xl md:text-4xl font-serif font-bold mb-4">Откройте для себя Бобруйск</h2>
+                    <p class="text-lg mb-6">Город с богатой историей, уникальной архитектурой и промышленным наследием. На этом сайте вы найдёте главные туристические достопримечательности, которые расскажут историю Бобруйска от деревянного зодчества до промышленных памятников.</p>
+                    <a href="#attractions" class="inline-block bg-white text-primary font-semibold px-6 py-3 rounded-lg hover:bg-gray-100 transition">Исследовать достопримечательности</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="attractions" class="py-section bg-gray-50">
+    
+    <!-- Секция "О проекте" (убран конфликтующий bg-white) -->
+    <div id="about" class="container mx-auto px-4 mb-20">
+    <!-- Сама подложка: добавлен фоновый цвет, внутренние отступы (p-6 md:p-10) и скругление (rounded-2xl) -->
+    <div class="bg-[#fcf5f2] rounded-2xl p-6 md:p-10 shadow-sm border border-[#f3e5e0]">
+        
+        <!-- Заголовок (теперь он внутри подложки) -->
+        <div class="text-left mb-8">
+            <h2 class="text-3xl font-serif font-bold text-primary mb-4">
+                О проекте «Бобер-путеводитель»
+            </h2>
+        </div>
+
+        <!-- Контейнер: Текст + Картинки -->
+        <div class="flex flex-col md:flex-row gap-8 items-start mr-auto max-w-6xl">
+            
+            <!-- Левая колонка: Текст (цвет текста изменен на dark для лучшей читаемости на бежевом) -->
+            <div class="text-dark max-w-4xl text-left flex-1 font-sans leading-relaxed">
+                <p class="mb-4">
+                    «Бобёр-путеводитель» — это молодёжный туристический проект, направленный на популяризацию исторического и культурного наследия города Бобруйска. Он знакомит жителей и гостей города с его уникальной архитектурой, музеями, достопримечательностями и другими знаковыми местами.
+                </p>
+                <p class="mb-4">
+                    Автор идеи — Дарья Колячко, студентка Бобруйского государственного аграрно-экономического колледжа. В феврале 2026 года Дарья представила свой проект на смотре-конкурсе инициатив «Молодёжный взгляд — битва идей», организаторами которого выступили Бобруйский городской исполнительный комитет, городской Совет депутатов и Молодёжный совет.
+                </p>
+                <p class="mb-4">
+                    Инициативу заметили и поддержали в Ленинском районном отделении г. Бобруйска Белорусской партии «Белая Русь». Было принято решение профинансировать и реализовать эту интересную задумку.
+                </p>
+                <p class="mb-4">
+                    Проект решает сразу несколько важных задач:
+                </p>
+                <p class="mb-4">
+                    1) развитие городской среды;
+                </p>
+                <p class="mb-4">
+                    2) повышение туристической привлекательности Бобруйска;
+                </p>
+                <p class="mb-4">
+                    3) вовлечение молодёжи в реальные позитивные дела.
+                </p>
+                <p class="mb-4">
+                    К сбору материалов для проекта подключились члены молодёжного движения «Искры» (Ленинское районное отделение г. Бобруйска партии «Белая Русь»). Активисты работали с информацией, предоставленной УК «Бобруйский краеведческий музей», а также использовали данные из открытых интернет-источников.
+                </p>
+                <p class="mb-4">
+                   Финансирование проекта осуществляется за счёт средств Ленинского районного отделения г. Бобруйска Белорусской партии «Белая Русь».
+                </p>
+            </div>
+
+            <!-- Правая колонка: Картинки (классы card-hover из прошлого шага отлично дополнят стиль) -->
+            <div class="w-full md:w-[380px] flex flex-col gap-4 shrink-0 ml-auto">
+                <img src="image/darya.jpg" alt="Бобер-путеводитель" class="w-full h-[300px] card-hover rounded-lg shadow-md object-cover">
+                <img src="image/darya2.jpg" alt="Бобер-путеводитель" class="w-full h-[300px] card-hover rounded-lg shadow-md object-cover">
+            </div>
+        </div>
+
+    </div>
+</div>
+
+    <!-- Секция "Достопримечательности" на том же сером фоне -->
+   <div class="container mx-auto px-4">
+    <!-- Шапка секции -->
+    <div class="text-center mb-10">
+        <h2 class="text-3xl font-serif font-bold text-primary mb-3">Туристические достопримечательности Бобруйска</h2>
+        <p class="text-dark max-w-2xl mx-auto">Список ключевых объектов культурного и исторического наследия, рекомендованных для посещения.</p>
+    </div>
+    
+    <!-- Общая большая бежево-розовая подложка -->
+    <div class="bg-light border border-accent/30 rounded-2xl p-6 md:p-10 shadow-sm">
+        <!-- Сетка с карточками. Если вы добавили CSS-код из Варианта 1, окошки внутри неё перестанут быть серыми -->
+        <div id="attractions-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-card"></div>
+    </div>
+</div>
+</section>
+
+        <section class="bg-gray-50 py-section">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col lg:flex-row items-center gap-8">
+                    <div class="lg:w-1/2">
+                        <h3 class="text-2xl font-serif font-bold text-primary mb-4">Уникальный экскурсовод</h3>
+                        <p class="text-gray-700 mb-4">Прогулка по историческому центру Бобруйска, раскрывающая город как живой музей под открытым небом. От величественных святынь до уютных двориков и промышленных памятников. Вы окунетесь в историю и неповторимый колорит нашего города.</p>
+                        <ul id="religion-route" class="space-y-2"></ul>
+                    </div>
+                    <div class="lg:w-1/2">
+                        <div class="bg-white p-6 rounded-xl shadow-lg">
+                            <h4 class="text-xl font-bold text-dark mb-4 flex items-center"><i class="fas fa-info-circle text-primary mr-2"></i>Полезная информация</h4>
+                            <ul id="info-list" class="space-y-3"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-section">
+            <div class="container mx-auto px-4">
+                <h3 class="text-2xl font-serif font-bold text-primary text-center mb-8">Карта достопримечательностей</h3>
+                <div class="bg-white border rounded-xl overflow-hidden shadow-md">
+                    <div class="p-4 border-b">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold">Расположение объектов на карте города</h4>
+                            <span class="text-sm text-gray-500">Условные обозначения</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <div class="flex items-center"><div class="map-marker mr-3"></div><span class="text-sm">Архитектура</span></div>
+                            <div class="flex items-center"><i class="fas fa-university text-amber-600 mr-3"></i><span class="text-sm">Музеи</span></div>
+                            <div class="flex items-center"><i class="fas fa-industry text-gray-600 mr-3"></i><span class="text-sm">Промышленность</span></div>
+                        </div>
+                       <div id="map" style="width: 100%; height: 400px; border-radius: 12px;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer id="contact" class="bg-dark text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <h4 class="text-xl font-bold mb-2">Бобер-путеводитель</h4>
+                    <p class="text-gray-300">"Мы собрали все самое интересное в одном пешеходном марщруте - Вам остается просто гулять и смотреть по сторонам".</p>
+                    <p class="text-gray-400 text-sm mt-2"><i class="fas fa-map-marker-alt mr-2"></i>Могилевская область, город Бобруйск</p>
+                </div>
+                <div>
+                    <h5 class="font-bold mb-3">Контакты</h5>
+                    <ul id="footer-contacts" class="space-y-2"></ul>
+                    <div class="flex space-x-4 mt-4">
+
+    <!-- TikTok вместо VK -->
+    <a href="https://www.tiktok.com/@propartiya_blr?_r=1&_t=ZM-937OGxlKtxY"
+       target="_blank"
+       class="text-gray-300 hover:text-white">
+        <i class="fab fa-tiktok text-lg"></i>
+    </a>
+
+    <!-- Telegram -->
+    <a href="https://t.me/partiyabelayarus"
+       target="_blank"
+       class="text-gray-300 hover:text-white">
+        <i class="fab fa-telegram text-lg"></i>
+    </a>
+
+    <!-- Instagram -->
+    <a href="https://www.instagram.com/partiya.belayarus?igsh=MWE1c2c0bGw5NzQ1Mw=="
+       target="_blank"
+       class="text-gray-300 hover:text-white">
+        <i class="fab fa-instagram text-lg"></i>
+    </a>
+
+</div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400 text-sm">
+                <p>&copy; 2023 Ленинское районное отделение партии "Белая Русь". Все права защищены.</p>
+                <p class="mt-1">Сайт о туристических достопримечательностях города Бобруйска.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Data Layer
+        const navigationData = [
+            { "label": "Главная", "href": "#home", "icon": "fas fa-home" },
+            { "label": "О проекте", "href": "#about", "icon": "fas fa-info-circle" },
+            { "label": "Достопримечательности", "href": "#attractions", "icon": "fas fa-landmark" },
+            
+            { "label": "Карта", "href": "#map", "icon": "fas fa-map" },
+            { "label": "Контакты", "href": "#contact", "icon": "fas fa-phone" }
+        ];
+
+        const attractionsData = [
+            
+            {
+                "id": 1,
+                "title": "Водонапорная башня («Чырвоная вежа»)",
+                "address": "ул. Пушкина, 194/19",
+                "description": "Объект промышленной архитектуры начала XX века, ставший визитной карточкой города.",
+                "category": "Промышленность",
+                "image": "image/2.jpg",
+                "alt": "Красная водонапорная башня Чырвоная вежа",
+                "icon": "fas fa-industry"
+            },
+
+            
+
+            {
+                "id": 2,
+                "title": "Дом Миренбурга",
+                "address": "ул. Пушкина, 211",
+                "description": "Памятник архитектуры начала XX века, расположенный в Бобруйске. Здание считается одним из лучших образцов жилой застройки города того времени.",
+                "category": "Архитектура",
+                "image": "image/foto1.jpg",
+                "alt": "Бывший городской особняк.",
+                "icon": "fas fa-home"
+            },
+
+            {
+                "id": 3,
+                "title": "Дом купчихи Кацнельсон",
+                "address": "ул. Интернациональная, 25",
+                "description": "Один из главных памятников деревянного зодчества, точка начала многих экскурсий по гражданской архитектуре.",
+                "category": "Архитектура",
+                "image": "image/11.jpg",
+                "alt": "Деревянный дом купчихи Кацнельсон в Бобруйске",
+                "icon": "fas fa-home"
+            },
+
+
+            {
+                "id": 4,
+                "title": "Сквер Челюскинцев возле Свято-Никольского собора",
+                "address": "ул. Советская, 76",
+                "description": "Сквер граничит с территорией главного православного храма города.",
+                "category": "Архитектура",
+                "image": "image/4.jpg",
+                "alt": "Скер Челюскинцев в Бобруйске",
+                "icon": "fas fa-home"
+            },
+
+            {
+                "id": 5,
+                "title": "Типография имени Непогодина",
+                "address": "ул. Социалистическая, 103",
+                "description": "Типография им. Непогодина - это действующее промышленное предприятие и памятник архитектуры начала XX века.",
+                "category": "Промышленность",
+                "image": "image/6.jpg",
+                "alt": "Здание типографии им. Непогодина Бобруйске",
+                "icon": "fas fa-industry"
+            },
+
+            {
+                "id": 6,
+                "title": "Бобруйский краеведческий музей",
+                "address": "ул. Социалистическая, 56",
+                "description": "Бобруйский краеведческий музей — один из старейших музеев Беларуси, расположенный в историческом здании стиля «модерн» (1910 года постройки) в центре города.",
+                "category": "Музей",
+                "image": "image/5.jpg",
+                "alt": "Здание Бобруйского краеведческого музея",
+                "icon": "fas fa-university"
+            },
+            
+            {
+                "id": 7,
+                "title": "Порт-Артур",
+                "address": "ул. Дзержинского, 21",
+                "description": "«Порт-Артур» — это легендарный жилой дом-колодец в Бобруйске, построенный в начале XX века из знаменитого красного кирпича Розенберга. Здание признано памятником архитектуры и популярно среди фотографов благодаря своему замкнутому внутреннему двору, напоминающему крепость.",
+                "category": "Архитектура",
+                "image": "image/7.jpg",
+                "alt": "Порт-Артур в Бобруйске",
+                "icon": "fas fa-home"
+            },
+
+            {
+                "id": 8,
+                "title": "Еврейский дворик",
+                "address": "ул. Чонгарская, 31",
+                "description": "«Еврейский дворик» в Бобруйске — это уникальный музей под открытым небом и туристический сквер, созданный на месте руин старинной синагоги.",
+                "category": "Музей",
+                "image": "image/8.jpg",
+                "alt": "Еврейский дворик в Бобруйске",
+                "icon": "fas fa-university"
+            }
+        ];
+
+        const religionRouteData = [
+            { "name": "Водонапорная башня («Чырвоная вежа»)", "religion": "Промышленность", "icon": "fas fa-industry" },
+            { "name": "Дом Миренбурга", "religion": "Архитектура", "icon": "fas fa-home" },
+            { "name": "Бобруйский краеведческий музей", "religion": "Музей", "icon": "fas fa-university" }
+        ];
+
+        const infoData = [
+            { "text": "Удобное расположение", "icon": "fas fa-calendar-alt" },
+            { "text": "Прогулка,  которая не требует подготовки", "icon": "fas fa-headset" },
+            { "text": "Идеальный вариант, чтобы влюбиться в город Бобруйск", "icon": "fas fa-sun" },
+            { "text": "Готовый рецепт с историческим центром Бобруйска", "icon": "fas fa-walking" }
+        ];
+
+        const footerContactsData = [
+            
+            { "type": "Email", "value": "leninsky.belayarus@yandex.ru", "icon": "fas fa-envelope" },
+            { "type": "Адрес", "value": "г. Бобруйск, ул. Пушкина, 211", "icon": "fas fa-map-marker-alt" }
+        ];
+
+        // Reusable Render Functions
+        function renderNavigation(items) {
+            return items.map(item => `
+                <li>
+                    <a href="${item.href}" class="flex items-center text-gray-700 hover:text-primary font-medium transition">
+                        <i class="${item.icon} mr-2"></i>${item.label}
+                    </a>
+                </li>
+            `).join("");
+        }
+
+        function renderAttractionCard(item) {
+            return `
+                <article class="bg-white rounded-xl overflow-hidden shadow-md card-hover">
+                    <div class="relative">
+                        <img src="${item.image}" alt="${item.alt}" class="w-full h-48 object-cover" loading="lazy">
+                        <div class="absolute top-3 left-3 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">${item.category}</div>
+                    </div>
+                    <div class="p-card">
+                        <div class="flex items-start justify-between mb-3">
+                            <h3 class="text-xl font-bold text-dark">${item.title}</h3>
+                            <i class="${item.icon} text-primary text-lg"></i>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-3"><i class="fas fa-map-marker-alt text-secondary mr-2"></i>${item.address}</p>
+                        <p class="text-gray-700 mb-4">${item.description}</p>
+                        <a href="detail.html?id=${item.id}" class="text-primary font-semibold hover:text-blue-700 transition flex items-center">
+                            <i class="fas fa-arrow-right mr-2"></i>Подробнее
+                        </a>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderAttractionsGrid(items) {
+            return items.map(item => renderAttractionCard(item)).join("");
+        }
+
+        function renderReligionRoute(items) {
+            return items.map(item => `
+                <li class="flex items-center bg-white p-3 rounded-lg">
+                    <i class="${item.icon} text-primary mr-3"></i>
+                    <div>
+                        <span class="font-medium">${item.name}</span>
+                        <span class="text-gray-500 text-sm ml-2">(${item.religion})</span>
+                    </div>
+                </li>
+            `).join("");
+        }
+
+        function renderInfoList(items) {
+            return items.map(item => `
+                <li class="flex items-center">
+                    <i class="${item.icon} text-primary mr-3"></i>
+                    <span>${item.text}</span>
+                </li>
+            `).join("");
+        }
+
+        function renderFooterContacts(items) {
+            return items.map(item => `
+                <li class="flex items-center">
+                    <i class="${item.icon} text-gray-300 mr-3"></i>
+                    <div>
+                        <span class="text-gray-400 text-sm">${item.type}:</span>
+                        <span class="ml-2">${item.value}</span>
+                    </div>
+                </li>
+            `).join("");
+        }
+
+        // DOM Injection
+        document.getElementById("nav-menu").innerHTML = renderNavigation(navigationData);
+        document.getElementById("attractions-grid").innerHTML = renderAttractionsGrid(attractionsData);
+        document.getElementById("religion-route").innerHTML = renderReligionRoute(religionRouteData);
+        document.getElementById("info-list").innerHTML = renderInfoList(infoData);
+        document.getElementById("footer-contacts").innerHTML = renderFooterContacts(footerContactsData);
+
+        // Event Delegation for Navigation and Interactive Elements
+        document.addEventListener("click", function(event) {
+            const link = event.target.closest("a[href^='#']");
+            if (link) {
+                event.preventDefault();
+                const targetId = link.getAttribute("href");
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: "smooth"
+                    });
+                }
+            }
+
+            const detailButton = event.target.closest("button[data-id]");
+            if (detailButton) {
+                const id = detailButton.getAttribute("data-id");
+                const attraction = attractionsData.find(item => item.id == id);
+                if (attraction) {
+                    alert(`Подробности о ${attraction.title}\nАдрес: ${attraction.address}\n\n${attraction.description}\n\nКатегория: ${attraction.category}`);
+                }
+            }
+
+            
+        });
+
+        // Initialize with smooth scroll for anchor links
+        window.addEventListener("DOMContentLoaded", function() {
+            if (window.location.hash) {
+                const target = document.querySelector(window.location.hash);
+                if (target) {
+                    setTimeout(() => {
+                        window.scrollTo({
+                            top: target.offsetTop - 80,
+                            behavior: "smooth"
+                        });
+                    }, 100);
+                }
+            }
+        });
+    </script>
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU"></script>
+
+<script>
+ymaps.ready(function () {
+
+    // 1. СОЗДАЁМ КАРТУ (ЭТО ТЫ ЗАБЫЛ)
+    const map = new ymaps.Map("map", {
+        center: [53.1384, 29.2214], // Бобруйск
+        zoom: 13
+    });
+
+    // 2. ИКОНКИ ПО ТИПАМ
+    const iconMap = {
+        architecture: "🏛",
+        museum: "🏺",
+        industry: "🏭"
+    };
+
+    // 3. ОБЪЕКТЫ
+    const places = [
+        { name: "Водонапорная башня («Чырвоная вежа»)", coords: [53.1450,29.2245], type: "industry" },
+        { name: "Дом Миренбурга", coords: [53.13061,29.21637], type: "architecture" },
+        { name: "Дом купчихи Кацнельсон", coords: [53.14022,29.21855], type: "architecture" },
+        { name: "Сквер Челюскинцев возле Свято-Никольского собора", coords: [53.13530,29.22740], type: "architecture" },
+        { name: "Типография имени Непогодина", coords: [53.13532,29.23075], type: "industry" },
+        { name: "Бобруйский краеведческий музей", coords: [53.1403,29.2236], type: "museum" },
+        { name: "Порт-Артур", coords: [53.13781,29.22692], type: "architecture" },
+        { name: "Еврейский дворик", coords: [53.13540,29.23193], type: "museum" }
+    ];
+
+    // 4. ДОБАВЛЯЕМ МАРКЕРЫ
+    places.forEach(place => {
+
+        const icon = iconMap[place.type] || "📍";
+
+        const placemark = new ymaps.Placemark(
+            place.coords,
+            {
+                balloonContent: `<b>${icon} ${place.name}</b>`
+            },
+            {
+                iconLayout: 'default#imageWithContent',
+                iconImageSize: [30, 30],
+                iconImageOffset: [-15, -15],
+                iconContentLayout: ymaps.templateLayoutFactory.createClass(`
+                    <div style="
+                        font-size: 24px;
+                        width: 30px;
+                        height: 30px;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                    ">
+                        ${icon}
+                    </div>
+                `)
+            }
+        );
+
+        map.geoObjects.add(placemark);
+    });
+
+});
+</script>
+</body>
+</html>
